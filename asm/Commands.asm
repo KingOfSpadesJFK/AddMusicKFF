@@ -1073,6 +1073,7 @@ SubC_table2:
 	dw	.reserveBuffer		; 04
 	dw	$0000 ;.gainRest	; 05
 	dw	.manualVTable		; 06
+	dw	.keyOffRelease		; 07
 	
 .HFDTune
 	mov     !HTuneValues+x, a
@@ -1088,6 +1089,10 @@ SubC_table2:
 	mov	!SecondVTable, a	; \ Argument is which table we're using
 	mov	$5c, #$ff		; | Mark all channels as needing a volume refresh
 	ret				; /
+
+.keyOffRelease
+	mov !keyOffReleaseValues+x, a
+	ret
 	
 }
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	

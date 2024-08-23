@@ -60,6 +60,7 @@ incsrc "UserDefines.asm"
 ; $0150: Don't use (part of the instrument "backup")
 ; $0151: Don't use (part of the instrument "backup")
 ; $0160: #$01 to enable Yoshi Drums (now handled elsewhere). Has various purposes; originally used by AddmusicM.
+; $0180: Release values to switch to upon key off. #$00 does a regular key off. 
 ; $0211+x: The volume part of the qXX command.
 ; $0387: Amount the tempo should be increased by (used by the "time is running out!" sound effect to speed up the music).
 
@@ -137,6 +138,8 @@ incsrc "UserDefines.asm"
 !remoteCodeTargetAddr2 = $0190	; The address to jump to for "start of note" code.  16-bit.
 !remoteCodeType2 = $03d0	; The remote code type for negative cases.
 !InRest = $01a1
+
+!keyOffReleaseValues = $0180	;
 
 norom
 arch spc700
@@ -3240,6 +3243,8 @@ L_10A1:
 	call	ShouldSkipKeyOff
 	mov1	HandleArpeggio_nextNoteCheck.5, c	; Switch between a BEQ/BNE opcode depending on the output.
 	bcc	+
+	mov a, !keyOffReleaseValues+x
+	bne +
 	call	KeyOffVoiceWithCheck 
 +
 	
