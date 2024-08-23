@@ -3211,7 +3211,26 @@ L_10A1:
 	call	RunRemoteCode
 
 .noRemoteCode2
+	; KoS
+	; Key-off release
+	;  Changes the ADSR release value upon key-off
+	;  Do this before the remote code so that this can get overwritten (if necessary?)
+	mov a, !keyOffReleaseValues+x		; Check for key off release
+	beq +
+	call	ShouldSkipKeyOff	
+	mov1	HandleArpeggio_nextNoteCheck.5, c	; Switch between a BEQ/BNE opcode depending on the output.
+	bcc	+
+	call SetBackupSRCNAndGetBackupInstrTable	; Backup the source # and instrument table
+	eor a, #$80
+	bpl +
+	mov y, #$02
+	mov a, ($10)+y
+	and a, #$E0						; Only change the release bits of the instrument's ADSR
+	adc a, !keyOffReleaseValues+x
+	mov ($10)+y, a
+	call UpdateInstr
 
++
 	setp						;
 	dec	$0100&$FF+x					;
 	clrp						;
@@ -3243,8 +3262,6 @@ L_10A1:
 	call	ShouldSkipKeyOff
 	mov1	HandleArpeggio_nextNoteCheck.5, c	; Switch between a BEQ/BNE opcode depending on the output.
 	bcc	+
-	mov a, !keyOffReleaseValues+x
-	bne +
 	call	KeyOffVoiceWithCheck 
 +
 	
