@@ -140,6 +140,7 @@ incsrc "UserDefines.asm"
 !InRest = $01a1
 
 !keyOffReleaseValues = $0180	;
+!keyOffReleaseBackups = $0181	;
 
 norom
 arch spc700
@@ -873,7 +874,8 @@ HandleSFXVoice:
 	setp
 	dec	!ChSFXNoteTimer&$FF+x
 	clrp
-	bne	.processSFXPitch
+	beq	.getMoreSFXData
+	jmp .processSFXPitch
 
 .getMoreSFXData
 	call	GetNextSFXByte		
@@ -923,13 +925,15 @@ endif
 	beq	.pitchBendCommand	; / $DD is the pitch bend command.
 
 	cmp	a, #$eb			; \
-	beq	.pitchBendCommand2	; / $EB is...another pitch bend command.
+	bne	+	; / $EB is...another pitch bend command.
+	jmp .pitchBendCommand2
 
-	cmp	a, #$fd			; \ 
++	cmp	a, #$fd			; \ 
 	beq	.executeCode		; / $FD is the code execution command.
 	cmp	a, #$da			; \ 
-	beq	.instrumentCommand	; / $DA is the instrument command.
-	cmp	a, #$fe			; \
+	bne	+
+	jmp .instrumentCommand	; / $DA is the instrument command.
++	cmp	a, #$fe			; \
 	beq	.loopSFX		; / $FE is the restart SFX command.
 	bcc	.playNote		; / Play a note.
 	mov	a, !ChSFXPtrs+x		; \ Move back one byte.
@@ -959,6 +963,17 @@ endif
 	bra	.setNoteLength
 .keyOnNote
 	call	KeyOnVoices		; Key on the voice.
+
+	mov a, !keyOffReleaseValues+x
+	beq +
+	call SetBackupSRCNAndGetBackupInstrTable	; Backup the source # and instrument table
+	eor a, #$80
+	bpl +
+	mov y, #$02
+	mov a, !keyOffReleaseBackups+x
+	mov ($10)+y, a
+	call UpdateInstr
++
 .setNoteLength
 	mov	a, !ChSFXNoteTimerBackup+x	
 					; \ Get the length of the note back
