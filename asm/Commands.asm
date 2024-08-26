@@ -1092,6 +1092,10 @@ SubC_table2:
 
 .keyOffRelease
 	mov !keyOffReleaseValues+x, a
+	call	SetBackupSRCNAndGetBackupInstrTable
+	mov	y, #$02			; | Write ADSR 2 to the table.
+	mov	a, ($10)+y		; /
+	mov !keyOffReleaseBackups+x, a
 	ret
 	
 }
